@@ -20,7 +20,7 @@ def get_account(accountId: int, db: Session = Depends(get_db)):
     return {"status": "success", "account": account}
 
 @account_router.post('/')
-def create_account(payload: schemas.AccountsSchema, db: Session = Depends(get_db)):
+def create_account(payload: schemas.PostAccountSchema, db: Session = Depends(get_db)):
     new_account = models.Account(**payload.model_dump())
     db.add(new_account)
     db.commit()

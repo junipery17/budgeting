@@ -1,14 +1,21 @@
-from fastapi import FastAPI, APIRouter
+from fastapi import FastAPI
 from database import engine, Base
 import accounts, budgets, expenses
+from fastapi.middleware.cors import CORSMiddleware
 
 Base.metadata.create_all(bind = engine)
 
 app = FastAPI()
 
-@app.get("/")
-def main():
-    return {"message": "Hello World"}
+origins = ["http://localhost:3000", "http://localhost:8000"]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods = ["*"],
+    allow_headers = ["*"],
+)
 
 app.include_router(accounts.account_router, tags=['Accounts'], prefix='/api/accounts')
 app.include_router(budgets.budget_router, tags = ["Budgets"], prefix= "/api/budgets")

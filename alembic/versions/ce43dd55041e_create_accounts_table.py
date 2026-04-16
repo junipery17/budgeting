@@ -22,9 +22,9 @@ def upgrade() -> None:
     """Upgrade schema."""
     op.create_table(
         'accounts',
-        sa.Column('account_id', sa.Integer, primary_key=True),
+        sa.Column('account_id', sa.Integer(), primary_key=True, autoincrement=True),
         sa.Column('name', sa.String(50), nullable=False),
-        sa.Column('budget', sa.Float)
+        sa.Column('budget', sa.Float, server_default="0.0")
     )
 
 

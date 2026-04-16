@@ -1,9 +1,9 @@
 from datetime import datetime
 from pydantic import BaseModel
-from typing import List
+from typing import List, Optional
 
 class AccountsSchema(BaseModel):
-    account_id: int | None = None
+    account_id: int | None
     name: str
     budget: float
     
@@ -12,12 +12,16 @@ class AccountsSchema(BaseModel):
         validate_by_name = True
         arbitrary_types_allowed = True
 
+class PostAccountSchema(BaseModel):
+    name: str
+    budget: Optional[float] = 0.0
+
 class ListAccountsResponse(BaseModel):
     status: str
     accounts: List[AccountsSchema]
 
 class BudgetsSchema(BaseModel):
-    budget_id: int | None = None
+    budget_id: int | None
     account_id: int
     budget_type: str
     monthly: bool
