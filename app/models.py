@@ -22,7 +22,7 @@ class Expense(Base):
     __tablename__ = "expenses"
     
     expense_id = Column(Integer, primary_key = True, nullable = False)
-    budget_id = Column(Integer, nullable = False)
+    budget_id = Column(Integer, ForeignKey(Budget.budget_id), nullable = False)
     cost = Column(Float, nullable = False)
     budget_type = Column(String(50), nullable = False)
     description = Column(String(75))
