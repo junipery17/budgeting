@@ -23,11 +23,11 @@ def upgrade() -> None:
     op.create_table(
         'budgets',
         sa.Column('budget_id', sa.Integer, primary_key=True, nullable=False, autoincrement=True),
-        sa.Column('account_id', sa.Integer, nullable=False),
+        sa.Column('total_id', sa.Integer, nullable=False),
         sa.Column('budget_type', sa.String(50), nullable=False),
-        sa.Column('monthly', sa.Boolean, default=True),
+        sa.Column('date_time', sa.DateTime, default=sa.func.current_date()),
         sa.Column('amount', sa.Float, nullable=False),
-        sa.Column('time_period', sa.DateTime, nullable=False, server_default=sa.func.now())
+        sa.Column('spent', sa.Float, nullable=False)
     )
 
 

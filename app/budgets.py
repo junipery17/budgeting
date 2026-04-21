@@ -17,7 +17,7 @@ def get_budget(accountId: int, budgetId: int, db: Session = Depends(get_db)):
     return {"status": "success", "budgets": budget}
 
 @budget_router.post('/')
-def create_budget(payload: schemas.BudgetsSchema, db: Session = Depends(get_db)):
+def create_budget(payload: schemas.PostBudgetsSchema, db: Session = Depends(get_db)):
     new_budget = models.Budget(**payload.model_dump())
     db.add(new_budget)
     db.commit()
@@ -35,7 +35,7 @@ def update_budget(budgetId: int, payload: schemas.BudgetsSchema, db: Session = D
     update_data = payload.model_dump(exclude_unset = True)
     budget_query.filter(models.Budget.budget_id == budgetId).update(update_data,
                                                                     synchronize_session= False)
-    db.commite()
+    db.commit()
     db.refresh(selected_budget)
     return {"status": "success", "budget": selected_budget}
 

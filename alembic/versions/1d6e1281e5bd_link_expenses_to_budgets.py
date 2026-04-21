@@ -13,18 +13,16 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision: str = '1d6e1281e5bd'
-down_revision: Union[str, Sequence[str], None] = '2a3d15fbb7a9'
+down_revision: Union[str, Sequence[str], None] = 'f20693ecd3a8'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
     """Upgrade schema."""
-    op.drop_column("expenses", "account_id")
-    op.add_column("expenses", sa.Column("budget_id", sa.Integer, nullable=False) )
     op.create_foreign_key(op.f("fk_expenses_budgets"), "expenses", "budgets", ["budget_id"], ["budget_id"])
 
 
 def downgrade() -> None:
     """Downgrade schema."""
-    op.drop_constraint(op.f("fk_expenses_budgets"), "budgets", type_="foreignkey")
+    op.drop_constraint(op.f("fk_expenses_budgets"), "expenses", type_="foreignkey")

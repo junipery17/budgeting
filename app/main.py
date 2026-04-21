@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from database import engine, Base
-import accounts, budgets, expenses
+import accounts, budgets, expenses, monthlyTotals
 from fastapi.middleware.cors import CORSMiddleware
 
 Base.metadata.create_all(bind = engine)
@@ -20,3 +20,4 @@ app.add_middleware(
 app.include_router(accounts.account_router, tags=['Accounts'], prefix='/api/accounts')
 app.include_router(budgets.budget_router, tags = ["Budgets"], prefix= "/api/budgets")
 app.include_router(expenses.expenses_router, tags = ['Expenses'], prefix = '/api/expenses')
+app.include_router(monthlyTotals.totals_router, tags = ['Main_Totals'], prefix = '/api/monthlyTotals')
