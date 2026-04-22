@@ -6,8 +6,6 @@ class Account(Base):
     
     account_id = Column(Integer, primary_key = True)
     name = Column(String(50), nullable = False)
-    budget = Column(Float, nullable = False, server_default="0.0")
-
 class MonthlyTotals(Base):
     __tablename__ = "monthly_totals"
     

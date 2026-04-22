@@ -1,11 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
 import axios from 'axios';
-import Box from '@mui/material/Box';
-import Grid from '@mui/material/Grid';
-import Typography from '@mui/material/Typography';
 import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
-import { paperClasses } from '@mui/material/Paper';
 
 const API_BASE = "http://localhost:8000";
 
@@ -27,11 +23,12 @@ function Accounts() {
         }
     };
 
-    function handleClick(id) {
-        navigate(`/budgets/${id}`,
+    function handleClick(id, name) {
+        navigate(`/main/${id}`,
             {
                 state: {
-                    accountid: id,
+                    accountId: id,
+                    accountName: name,
                 }
             }
         );
@@ -81,23 +78,21 @@ function Accounts() {
         <div className="App">
             <h1 className="title">BUDGETING APP</h1>
             <div className="accounts-list">
-                <h2 className="subtitle">Accounts</h2>
+                <h2 className="subtitle" class="text-2xl bg-inherit">Accounts</h2>
                 {accounts.length === 0 ? (
                     <p>No Accounts found</p>
                 ) : (
                     <ul className="account-list-grid">
                         <li className="account-headers">
-                            <h3>NAME</h3>
-                            <h3>Over/Under Budget</h3>
-                            <h3>View/Edit</h3>
-                            <h3>Delete</h3>
+                            <h3 class="font-bold">NAME</h3>
+                            <h3 class="font-bold">View/Edit</h3>
+                            <h3 class="font-bold">Delete</h3>
                         </li>
                         {accounts.map(account => (
                             <li className="account-names" key={account.account_id}>
                                 <p className="left-end">{account.name}</p>
-                                <p className="middle-row">{account.budget == 0 ? 'DO NOT SPEND MORE' : account.budget}</p>
                                 <div className="wrapper">
-                                    <button className="editButton" onClick={() => handleClick(account.account_id)}>Edit {account.name}</button>
+                                    <button className="editButton" onClick={() => handleClick(account.account_id, account.name)}>Edit {account.name}</button>
                                 </div>
                                 <div className="wrapper right-end">
                                     <button className="iconButton" onClick={() => handleDelete(account.account_id, account.name)}><DeleteRoundedIcon className="icon" /></button>
@@ -119,7 +114,7 @@ function Accounts() {
                 </form>
             }
 
-            <button className="newAccountButton" onClick={handleMoreClick}>{showMakeAccount ? 'Close' : 'Make New Account'}</button>
+            <button className="newAccountButton" onClick={handleMoreClick}>{showMakeAccount ? 'Cancel' : 'Make New Account'}</button>
 
         </div >
     );

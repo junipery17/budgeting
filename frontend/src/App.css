@@ -20,7 +20,7 @@
 
 .account-list-grid {
   display: grid;
-  grid-template-columns: auto auto auto 10%;
+  grid-template-columns: auto auto 10%;
   align-items: center;
   align-self: stretch;
 }
@@ -41,13 +41,6 @@ ul {
   padding-inline-start: 0;
   list-style-type: none;
   grid-template-columns: repeat(auto-fill, 40px);
-  background-color: #efece0;
-}
-
-span {
-  display: inline-block;
-  vertical-align: middle;
-  line-height: normal;
   background-color: #efece0;
 }
 

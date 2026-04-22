@@ -46,7 +46,6 @@ class BudgetsSchema(BaseModel):
     budget_id: int | None
     total_id: int
     budget_type: str
-    date_time: datetime
     amount: float
     spent: float
     
@@ -58,8 +57,8 @@ class BudgetsSchema(BaseModel):
 class PostBudgetsSchema(BaseModel):
     total_id: int
     budget_type: str
-    date_time: datetime
     amount: float
+    spent: float
 
 class ListBudgetsResponse(BaseModel):
     status: str

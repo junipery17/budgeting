@@ -5,14 +5,14 @@ from database import get_db
 
 budget_router = APIRouter()
 
-@budget_router.get('/{accountId}')
-def get_budgets(accountId: int, db: Session = Depends(get_db)):
-    budgets = db.query(models.Budget).filter(models.Budget.account_id == accountId).all()
+@budget_router.get('/{totalId}')
+def get_budgets(totalId: int, db: Session = Depends(get_db)):
+    budgets = db.query(models.Budget).filter(models.Budget.total_id == totalId).all()
     return {"status": "success", "budgets": budgets}
 
-@budget_router.get('/{accountId}/{budgetId}')
-def get_budget(accountId: int, budgetId: int, db: Session = Depends(get_db)):
-    budget = db.query(models.Budget).filter((models.Budget.account_id == accountId) and 
+@budget_router.get('/{totalId}/{budgetId}')
+def get_budget(totalId: int, budgetId: int, db: Session = Depends(get_db)):
+    budget = db.query(models.Budget).filter((models.Budget.total_id == totalId) and 
                                              (models.Budget.budget_id == budgetId)).first()
     return {"status": "success", "budgets": budget}
 
