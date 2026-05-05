@@ -3,7 +3,7 @@
   margin-top: 2%;
 }
 
-* {
+html {
   background-color: #c6ecce;
 }
 
@@ -16,6 +16,7 @@
   margin: 0 auto;
   color: white;
   font-weight: 800;
+  text-align: center;
 }
 
 .account-list-grid {
@@ -35,6 +36,7 @@
 .subtitle {
   font-weight: 600;
   background-color: #efece0;
+  text-align: center;
 }
 
 ul {

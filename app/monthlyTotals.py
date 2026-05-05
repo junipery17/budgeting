@@ -12,14 +12,12 @@ def get_all_totals(accountId: int, db: Session = Depends(get_db), year: int = No
         totals = db.query(models.MonthlyTotals).filter(
             models.MonthlyTotals.account_id == accountId).all()
     elif month == None:
-        totals = db.query(models.MonthlyTotals).filter(
-            (models.MonthlyTotals.account_id == accountId) and
-            (models.MonthlyTotals.year == year)).all()
+        totals = db.query(models.MonthlyTotals).filter(models.MonthlyTotals.account_id == accountId).filter(
+                                                        models.MonthlyTotals.year == year).all()
     else:
-        totals = db.query(models.MonthlyTotals).filter(
-            (models.MonthlyTotals.account_id == accountId) and
-            (models.MonthlyTotals.year == year) and
-            (models.MonthlyTotals.month == month)).all()
+        totals = db.query(models.MonthlyTotals).filter(models.MonthlyTotals.account_id == accountId).filter(
+                                                        models.MonthlyTotals.year == year).filter(
+                                                        models.MonthlyTotals.month == month).all()
     return {'status': 'success', 'totals': totals}
 
 @totals_router.post('/')

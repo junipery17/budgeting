@@ -33,5 +33,4 @@ class Expense(Base):
     budget_id = Column(Integer, ForeignKey(Budget.budget_id), nullable = False)
     cost = Column(Float, nullable = False)
     description = Column(String(75))
-    timestamp = Column(Time, nullable = False)
 

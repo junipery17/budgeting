@@ -10,12 +10,13 @@ def get_expenses(budgetId: int, db: Session = Depends(get_db)):
     expenses = db.query(models.Expense).filter(models.Expense.budget_id == budgetId).all()
     return {"status": "success", "expenses": expenses}
 
-@expenses_router.get('/{expenseId}')
-def get_expense(expenseId: int, db: Session = Depends(get_db)):
+@expenses_router.get('/{budgetId}/{expenseId}')
+def get_expense(budgetId: int, expenseId: int, db: Session = Depends(get_db)):
     expense = db.query(models.Expense).filter(models.Expense.expense_id == expenseId).first()
+    return {"status": "success", "expense": expense}
     
 @expenses_router.post('/')
-def create_expense(payload: schemas.ExpensesSchema, db: Session = Depends(get_db)):
+def create_expense(payload: schemas.PostExpensesSchema, db: Session = Depends(get_db)):
     new_expense = models.Expense(**payload.model_dump())
     db.add(new_expense)
     db.commit()

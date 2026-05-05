@@ -54,6 +54,11 @@ class BudgetsSchema(BaseModel):
         validate_by_name = True
         arbitrary_types_allowed = True
 
+class EditBudgetsSchema(BaseModel):
+    budget_id: int
+    budget_type: str
+    amount: float
+
 class PostBudgetsSchema(BaseModel):
     total_id: int
     budget_type: str
@@ -69,5 +74,8 @@ class ExpensesSchema(BaseModel):
     budget_id: int
     cost: float
     description: str
-    timestamp: datetime
 
+class PostExpensesSchema(BaseModel):
+    budget_id: int
+    description: str
+    cost: float

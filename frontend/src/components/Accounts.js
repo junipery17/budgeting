@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
 import axios from 'axios';
 import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
+import '../App.css';
 
 const API_BASE = "http://localhost:8000";
 
@@ -35,7 +36,7 @@ function Accounts() {
     };
 
     function handleDelete(id, name) {
-        if (window.confirm(`Are you sure you would like to delete "${name}" forever?`) == true) {
+        if (window.confirm(`Are you sure you would like to delete "${name}" forever?`) === true) {
             try {
                 axios.delete(`${API_BASE}/api/accounts/${id}`).then(response => {
                     window.location.reload();

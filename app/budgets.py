@@ -12,7 +12,7 @@ def get_budgets(totalId: int, db: Session = Depends(get_db)):
 
 @budget_router.get('/{totalId}/{budgetId}')
 def get_budget(totalId: int, budgetId: int, db: Session = Depends(get_db)):
-    budget = db.query(models.Budget).filter((models.Budget.total_id == totalId) and 
+    budget = db.query(models.Budget).filter((models.Budget.total_id == totalId)).filter(
                                              (models.Budget.budget_id == budgetId)).first()
     return {"status": "success", "budgets": budget}
 
@@ -25,7 +25,7 @@ def create_budget(payload: schemas.PostBudgetsSchema, db: Session = Depends(get_
     return {"status": "success", "budget": new_budget}
 
 @budget_router.patch('/{budgetId}')
-def update_budget(budgetId: int, payload: schemas.BudgetsSchema, db: Session = Depends(get_db)):
+def update_budget(budgetId: int, payload: schemas.EditBudgetsSchema, db: Session = Depends(get_db)):
     budget_query = db.query(models.Budget).filter(models.Budget.budget_id == budgetId)
     selected_budget = budget_query.first()
     

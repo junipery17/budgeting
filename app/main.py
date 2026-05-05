@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from database import engine, Base
-import accounts, budgets, expenses, monthlyTotals, otherServices
+import accounts, budgets, expenses, monthlyTotals, otherServices, costCalculations
 from fastapi.middleware.cors import CORSMiddleware
 
 Base.metadata.create_all(bind = engine)
@@ -22,3 +22,5 @@ app.include_router(budgets.budget_router, tags = ["Budgets"], prefix= "/api/budg
 app.include_router(expenses.expenses_router, tags = ['Expenses'], prefix = '/api/expenses')
 app.include_router(monthlyTotals.totals_router, tags = ['Main_Totals'], prefix = '/api/monthlyTotals')
 app.include_router(otherServices.page_into_router, tags=['main_page_populate'], prefix="/api/mainpage")
+app.include_router(costCalculations.expense_calculator, tags=["calculate_expense"], prefix="/api/calculate")
+app.include_router(costCalculations.pie_chart_router, tags=["pie_chart_data"], prefix="/api/charts")
