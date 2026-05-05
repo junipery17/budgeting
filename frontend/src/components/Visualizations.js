@@ -42,40 +42,50 @@ function Visualizations() {
                 <span class="col-start-6 mx-16 my-5 text-[#c6ecce]">Back</span>
             </div>
             <div class="m-5">
-                <Plot
-                    data={[
-                        {
-                            values: Object.values(budget_expense_dict),
-                            labels: Object.keys(budget_expense_dict),
-                            type: 'pie',
-                            textinfo: "label+percent",
-                        },
-                    ]}
-                    layout={{
-                        width: 575,
-                        height: 475,
-                        title: { text: `${location.state.month}/${location.state.year} Break down` },
-                    }}
+                {(!budget_expense_dict) || (Object.keys(budget_expense_dict).length === 0) ? (
+                    <h1>no data yet</h1>
+                ) : (
+                    <Plot
+                        data={[
+                            {
+                                values: Object.values(budget_expense_dict),
+                                labels: Object.keys(budget_expense_dict),
+                                type: 'pie',
+                                textinfo: "label+percent",
+                            },
+                        ]}
+                        layout={{
+                            width: 575,
+                            height: 475,
+                            title: { text: `${location.state.month}/${location.state.year} Break down` },
+                        }}
 
-                />
+                    />
+                )}
+
             </div>
             <div class="m-5">
-                <Plot
-                    data={[
-                        {
-                            values: Object.values(total_budget_expense_dict),
-                            labels: Object.keys(total_budget_expense_dict),
-                            type: 'pie',
-                            textinfo: "label+percent",
-                        },
-                    ]}
-                    layout={{
-                        width: 575,
-                        height: 475,
-                        title: { text: `Total Spending Break down` },
-                    }}
+                {(!total_budget_expense_dict) || (Object.keys(total_budget_expense_dict).length === 0) ? (
+                    <h1> no data yet</h1>
+                ) : (
+                    <Plot
+                        data={[
+                            {
+                                values: Object.values(total_budget_expense_dict),
+                                labels: Object.keys(total_budget_expense_dict),
+                                type: 'pie',
+                                textinfo: "label+percent",
+                            },
+                        ]}
+                        layout={{
+                            width: 575,
+                            height: 475,
+                            title: { text: `Total Spending Break down` },
+                        }}
 
-                />
+                    />
+                )}
+
             </div>
         </div>
     );

@@ -100,11 +100,23 @@ function Main_Totals() {
     const handleEditCatOpen = (budget_id, category, total) => {
         setEditCategoryInfo({ "budget_id": budget_id, "category": category, "total": total });
         setEditCategoryDisplay(true);
-    }
+    };
 
     const handleEditCatClose = () => {
         setEditCategoryDisplay(false);
-    }
+    };
+
+    function handleDeleteCategory(budget_id, budget_name) {
+        if (window.confirm(`Are you sure you would like to delete "${budget_name}" forever?`) === true) {
+            try {
+                axios.delete(`${API_BASE}/api/budgets/${budget_id}`).then(response => {
+                    fetchAll(currentMonthYear.month, currentMonthYear.year);
+                });
+            } catch (error) {
+                console.error("Unable to delete account: ", error);
+            }
+        }
+    };
 
     function handleBackClick() {
         navigate("/")
@@ -398,8 +410,10 @@ function Main_Totals() {
                         )}
                     </h2>
                 </div>
-                {/* <div class="row-start-2 row-end-3 col-start-4 col-end-8 m-2 mx-16 p-8 font-medium text-left align-middle mb-12 mr-[24rem]">Current Month:</div> */}
-                <div class="rounded-md bg-white row-start-2 row-end-3 col-start-4 col-end-8 m-2 mx-16 text-center align-middle mb-12 ml-80">
+                <div class="row-start-2 row-end-3 col-start-4 col-end-6 m-2 mx-5 font-medium text-center align-middle mb-12">
+                    <h3 class="h-24">Amount Allocated Here</h3>
+                </div>
+                <div class="rounded-md bg-white row-start-2 row-end-3 col-start-6 col-end-8 m-2 mx-5 text-center align-middle mb-12">
                     <button id="chooseCategory" data-dropdown-toggle="dropdown" class=" inline-flex items-center justify-center text-white bg-[#1e643c] box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-lg w-[95%] py-7 focus:outline-none align-middle my-2" type="button">
                         {months[totalInfo.month]}/{totalInfo.year}
                         <svg class="w-4 h-4 ms-1.5 -me-0.5 bg-inherit" aria-hidden="true" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" d="m19 9-7 7-7-7" /></svg>
@@ -440,7 +454,7 @@ function Main_Totals() {
                                         <button onClick={() => handleEditCatOpen(category.budget_id, category.budget_type, category.amount)}><ModeEditIcon /></button>
                                     </span>
                                     <span class="col-start-6 py-6">
-                                        <button><DeleteRoundedIcon /></button>
+                                        <button onClick={() => handleDeleteCategory(category.budget_id, category.budget_type)}><DeleteRoundedIcon /></button>
                                     </span>
                                 </li>
                             ))}
