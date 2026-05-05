@@ -8,7 +8,7 @@ account_router = APIRouter()
 @account_router.get('/')
 def get_accounts(db: Session = Depends(get_db), search: str = ''):
     accounts = db.query(models.Account).filter(
-            models.Account.name.contains(search)).all()
+            models.Account.name.contains(search)).order_by(models.Account.account_id.asc()).all()
     return {'status': 'success', 'accounts': accounts}
 
 @account_router.get('/{accountId}')
