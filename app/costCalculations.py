@@ -10,13 +10,14 @@ pie_chart_router = APIRouter()
 @expense_calculator.get('/')
 def get_total_expenses_for_month(accountId: int, month: int, year: int, db: Session = Depends(get_db)):
     total = 0
-    info = db.query(models.Budget.budget_id).join(
+    info = db.query(models.Budget).join(
         models.MonthlyTotals).join(
             models.Account).filter(models.MonthlyTotals.month == month).filter(
                                     models.MonthlyTotals.year == year).filter(
                                     models.Account.account_id == accountId).all()
     if info:
-        total = db.query(func.sum(models.Expense.cost).label("expenses_cost")).filter(models.Expense.budget_id.in_(info[0])).scalar()
+        all_budget_ids = [x.budget_id for x in info]
+        total = db.query(func.sum(models.Expense.cost).label("expenses_cost")).filter(models.Expense.budget_id.in_(all_budget_ids)).scalar()
     if not total:
         total = 0
     return {"status": "success", "total": total}
@@ -33,6 +34,7 @@ def get_all_expenses_in_category_month(totalId: int, category: str = "", db: Ses
 @pie_chart_router.get('/{accountId}')
 def get_budget_and_expense(accountId: int, month:int = None, year: int = None, db: Session = Depends(get_db)):
     budget_expenses = {}
+    monthly_budgets = {}
     # budgets = db.query(models.Budget).join(models.MonthlyTotals).filter((models.MonthlyTotals.account_id == accountId))
     if((year == None) and (month == None)):
         budgets_list = db.query(models.Budget).join(models.MonthlyTotals).filter((models.MonthlyTotals.account_id == accountId)).all()
@@ -53,5 +55,16 @@ def get_budget_and_expense(accountId: int, month:int = None, year: int = None, d
             expense_total = db.query(func.sum(models.Expense.cost).label("expenses_total_cost")).join(models.Budget).filter(
                 models.Budget.budget_type == category.budget_type).filter(category.budget_id == models.Expense.budget_id).scalar()
         budget_expenses[category.budget_type] = expense_total
-    return {"budget_dict": budget_expenses}
+        monthly_budgets[category.budget_type] = category.amount
+    return {"budget_dict": budget_expenses, "categories": monthly_budgets}
+    
+@pie_chart_router.get('/{accountId}/{monthlyTotalId}')
+def get_monthly_expenses_total(accountId: int, monthlyTotalId: int, db: Session = Depends(get_db)):
+    sum_of_related_expenses = db.query(func.sum(models.Expense.cost).label("all_expenses")).join(
+                                                                                    models.Budget).join(
+                                                                                    models.MonthlyTotals).filter(
+                                                                                    models.MonthlyTotals.account_id == accountId).filter(
+                                                                                    models.Budget.total_id == monthlyTotalId).scalar()
+    monthlyTotal = db.query(models.MonthlyTotals).filter(models.MonthlyTotals.total_id == monthlyTotalId).first()
+    return {"monthly_total": monthlyTotal, "expenses_sum": sum_of_related_expenses}
     

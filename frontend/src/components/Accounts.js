@@ -14,7 +14,6 @@ const API_BASE = "http://localhost:8000";
 
 function Accounts() {
     const [accounts, setAccounts] = useState([]);
-    const [showMakeAccount, setShowMakeAccount] = useState(false);
     const [makeAccountOpen, setMakeAccountOpen] = useState(false);
     const [editAccountOpen, setEditAccountOpen] = useState(false);
     const [currentAccountEdit, setCurrentAccountEdit] = useState({});
@@ -26,7 +25,7 @@ function Accounts() {
 
     const fetchAccounts = async () => {
         try {
-            const response = await axios.get(`${API_BASE}/api/accounts`);
+            var response = await axios.get(`${API_BASE}/api/accounts`);
             setAccounts(response.data.accounts);
         } catch (error) {
             console.error("Error fetching accounts: ", error);
@@ -63,9 +62,9 @@ function Accounts() {
 
     function handleEdit(event) {
         event.preventDefault();
-        const formData = new FormData(event.currentTarget);
-        const formJson = Object.fromEntries(formData.entries());
-        if (formJson.name == currentAccountEdit["name"]) {
+        var formData = new FormData(event.currentTarget);
+        var formJson = Object.fromEntries(formData.entries());
+        if (formJson.name === currentAccountEdit["name"]) {
             return;
         }
         try {
@@ -96,9 +95,9 @@ function Accounts() {
 
     function handleSubmit(e) {
         e.preventDefault();
-        const form = e.target;
-        const formData = new FormData(form);
-        const formJson = Object.fromEntries(formData.entries());
+        var form = e.target;
+        var formData = new FormData(form);
+        var formJson = Object.fromEntries(formData.entries());
         try {
             axios.post(`${API_BASE}/api/accounts`, {
                 "name": formJson.name,
@@ -173,7 +172,7 @@ function Accounts() {
 
         <div className="App">
             <h1 className="title">BUDGETING APP</h1>
-            <button class="bg-[#5b976c] px-2 py-2 inline-block rounded-xl m-2 ml-20" onClick={handleMakeAccountOpen}>{showMakeAccount ? 'Cancel' : 'Make New Account'}</button>
+            <button class="bg-[#5b976c] px-2 py-2 inline-block rounded-xl m-2 ml-20" onClick={handleMakeAccountOpen}>Make New Account</button>
             {newAccountDisplay()}
             <div className="accounts-list">
                 <h2 className="subtitle" class="text-2xl bg-inherit">Accounts</h2>
@@ -191,9 +190,9 @@ function Accounts() {
                             <li className="account-names" key={account.account_id}>
                                 <p className="left-end">{account.name}</p>
                                 <div className="wrapper">
-                                    <button className="editButton" onClick={() => handleClick(account.account_id, account.name)}>Edit {account.name}</button>
+                                    <button className="editButton" onClick={() => handleClick(account.account_id, account.name)}>View {account.name}</button>
                                 </div>
-                                <div className="wrapper" class="p-[40px] bg-inherit">
+                                <div class="mt-[8px] mb-[8px] bg-inherit items-center self-stretch p-[40px]">
                                     <button className="iconButton" onClick={() => handleEditAccountOpen(account.account_id, account.name)}><ModeEditIcon className="icon" /></button>
                                 </div>
                                 <div className="wrapper right-end">
