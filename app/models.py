@@ -15,17 +15,24 @@ class MonthlyTotals(Base):
     year = Column(Integer, nullable = False)
     total_expenses = Column(Float)
     monthly_budget = Column(Float)
+
+class Category(Base):
+    __tablename__ = "categories"
+    
+    category_id = Column(Integer, primary_key= True, nullable = False)
+    name = Column(String(50), nullable = False)
+    account_id = Column(Integer, ForeignKey(Account.account_id), nullable=False)
     
 class Budget(Base):
     __tablename__ = "budgets"
 
     budget_id = Column(Integer, primary_key = True, nullable = False)
     total_id = Column(Integer, ForeignKey(MonthlyTotals.total_id), nullable = False)
-    budget_type = Column(String(50), nullable = False)
+    category_id = Column(Integer, ForeignKey(Category.category_id), nullable=False)
     date_time = Column(Time, nullable = False)
     amount = Column(Float)
     spent = Column(Float)
-
+    
 class Expense(Base):
     __tablename__ = "expenses"
     
@@ -33,4 +40,5 @@ class Expense(Base):
     budget_id = Column(Integer, ForeignKey(Budget.budget_id), nullable = False)
     cost = Column(Float, nullable = False)
     description = Column(String(75))
+    date = Column(Time)
 

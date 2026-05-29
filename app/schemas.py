@@ -45,7 +45,7 @@ class MonthlyTotalsPostSchema(BaseModel):
 class BudgetsSchema(BaseModel):
     budget_id: int | None
     total_id: int
-    budget_type: str
+    category_id: int
     amount: float
     spent: float
     
@@ -56,15 +56,29 @@ class BudgetsSchema(BaseModel):
 
 class EditBudgetsSchema(BaseModel):
     budget_id: int
-    budget_type: str
+    category_id: int
     amount: float
 
 class PostBudgetsSchema(BaseModel):
     total_id: int
-    budget_type: str
+    category_id: int
     amount: float
     spent: float
 
+class CategoriesSchema(BaseModel):
+    category_id: int
+    name: str
+    account_id: int
+    
+    class Config:
+        from_attributes = True
+        validate_by_name = True
+        arbitrary_types_allowed = True
+
+class PostCategorySchema(BaseModel):
+    name: str
+    account_id: int
+    
 class ListBudgetsResponse(BaseModel):
     status: str
     budgets: List[BudgetsSchema]
@@ -72,10 +86,19 @@ class ListBudgetsResponse(BaseModel):
 class ExpensesSchema(BaseModel):
     expense_id: int | None = None
     budget_id: int
+    account_id: int
     cost: float
     description: str
+    date: datetime
 
 class PostExpensesSchema(BaseModel):
     budget_id: int
+    account_id: int
     description: str
     cost: float
+    date: datetime
+
+class ExpenseToCategorySchema(BaseModel):
+    category_id: int
+    name: str
+    expense_id: int
