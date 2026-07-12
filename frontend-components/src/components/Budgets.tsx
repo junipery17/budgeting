@@ -11,10 +11,11 @@ const Plot = (PlotlyComponent as any).default || PlotlyComponent;
 const API_BASE = "http://localhost:8000";
 
 interface BudgetData {
-    total_id: number;
     category_id: number;
     budget_id: number;
     amount: number;
+    month: number;
+    year: number;
 };
 
 interface ExpenseData {
@@ -24,8 +25,23 @@ interface ExpenseData {
     description: string;
 };
 
+const months: { [key: number]: string } = {
+    1: "January",
+    2: "February",
+    3: "March",
+    4: "April",
+    5: "May",
+    6: "June",
+    7: "July",
+    8: "August",
+    9: "September",
+    10: "October",
+    11: "November",
+    12: "December"
+};
+
 export default function Budgets() {
-    const [budget, setBudget] = useState<BudgetData>({ "total_id": -1, "category_id": -1, "budget_id": -1, "amount": 0 });
+    const [budget, setBudget] = useState<BudgetData>({ "category_id": -1, "budget_id": -1, "amount": 0, "month": 0, "year": 0 });
     const [allBudgets, setAllBudgets] = useState<BudgetData[]>([]);
     const [allCategories, setAllCategories] = useState<{ [key: number]: string }>({});
     const [expenses, setExpenses] = useState<ExpenseData[]>([]);
@@ -46,7 +62,7 @@ export default function Budgets() {
 
     const fetchBudget = async (budget_id: number) => {
         try {
-            var response = await axios.get(`${API_BASE}/api/budgets/${location.state.totalId}/${budget_id}`);
+            var response = await axios.get(`${API_BASE}/api/budgets/${budget_id}`);
             setBudget(response.data.budgets);
         } catch (error) {
             console.error("Error fetching budgets: ", error);
@@ -73,7 +89,7 @@ export default function Budgets() {
 
     const fetchAllBudgets = async () => {
         try {
-            var response = await axios.get(`${API_BASE}/api/budgets/${location.state.totalId}`);
+            var response = await axios.get(`${API_BASE}/api/budgets/${location.state.month}/${location.state.year}`);
             setAllBudgets(response.data.budgets);
         } catch (error) {
             console.error("error fetching all budgets", error);
@@ -223,7 +239,7 @@ export default function Budgets() {
                         <span className="text-base-200-content font-bold text-4xl">{allCategories[budget.category_id]}</span>
                     </div>
                     <div className='px-4'>
-                        <span className="text-base-200-content italic text-2xl">{location.state.month}, {location.state.year}</span>
+                        <span className="text-base-200-content italic text-2xl">{months[location.state.month]}, {location.state.year}</span>
                     </div>
                     <div className="mt-5 grow flex flex-col">
                         <ul className="menu bg-base-200 rounded-box my-5">
@@ -246,8 +262,8 @@ export default function Budgets() {
                 <div>
                     <h1 className="font-bold text-4xl m-7">Budget Breakdown</h1>
                     <div className="m-5">
-                        <select className="select select-secondary">
-                            <option disabled selected>Select a Category</option>
+                        <select className="select select-secondary" defaultValue={"Select a Category"}>
+                            <option disabled>Select a Category</option>
                             {allBudgets.map(category => (
                                 <option key={category.budget_id} onClick={() => changeCat(category.budget_id)}>
                                     {allCategories[category.category_id]}
@@ -356,7 +372,7 @@ export default function Budgets() {
                             </thead>
                             <tbody>
                                 {expenses.map(expense => (
-                                    <tr>
+                                    <tr key={expense.expense_id}>
                                         <td>{expense.description}</td>
                                         <td>${expense.cost.toFixed(2)}</td>
                                         <td>

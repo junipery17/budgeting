@@ -5,6 +5,8 @@ from typing import List, Optional
 class AccountsSchema(BaseModel):
     account_id: int | None
     name: str
+    username: str
+    email: str
     
     class Config:
         from_attributes = True
@@ -13,41 +15,26 @@ class AccountsSchema(BaseModel):
 
 class PostAccountSchema(BaseModel):
     name: str
-
-class ListAccountsResponse(BaseModel):
-    status: str
-    accounts: List[AccountsSchema]
-
-class MonthlyTotalsSchema(BaseModel):
-    total_id: int | None
-    account_id: int
-    month: int
-    year: int
-    total_expenses: float
-    monthly_budget: float
+    username: str
+    password: str
+    email: str
     
     class Config:
         from_attributes = True
         validate_by_name = True
         arbitrary_types_allowed = True
 
-class MonthlyTotalsListSchema(BaseModel):
-    status: str 
-    totals: List[MonthlyTotalsSchema]
-
-class MonthlyTotalsPostSchema(BaseModel):
-    account_id: int
-    month: int
-    year: int
-    total_expenses: float
-    monthly_budget: float
+class ListAccountsResponse(BaseModel):
+    status: str
+    accounts: List[AccountsSchema]
 
 class BudgetsSchema(BaseModel):
     budget_id: int | None
-    total_id: int
     category_id: int
     amount: float
-    spent: float
+    account_id: int
+    month: int
+    year: int
     
     class Config:
         from_attributes = True
@@ -59,11 +46,16 @@ class EditBudgetsSchema(BaseModel):
     category_id: int
     amount: float
 
+class EditAllBudgetsSchema(BaseModel):
+    budget_id: int
+    amount: float
+
 class PostBudgetsSchema(BaseModel):
-    total_id: int
     category_id: int
     amount: float
-    spent: float
+    month: int
+    year: int
+    account_id: int
 
 class CategoriesSchema(BaseModel):
     category_id: int
@@ -85,14 +77,14 @@ class ListBudgetsResponse(BaseModel):
 
 class ExpensesSchema(BaseModel):
     expense_id: int | None = None
-    budget_id: int
+    budget_id: int | None = None
     account_id: int
     cost: float
     description: str
     date: datetime
 
 class PostExpensesSchema(BaseModel):
-    budget_id: int
+    budget_id: int | None = None
     account_id: int
     description: str
     cost: float

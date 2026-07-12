@@ -1,19 +1,19 @@
 import schemas, models
 from sqlalchemy.orm import Session
+from sqlalchemy import extract
 from fastapi import Depends, HTTPException, status, APIRouter, Response
 from database import get_db
 
 budget_router = APIRouter()
 
-@budget_router.get('/{totalId}')
-def get_budgets(totalId: int, db: Session = Depends(get_db)):
-    budgets = db.query(models.Budget).filter(models.Budget.total_id == totalId).all()
+@budget_router.get('/{month}/{year}')
+def get_budgets(month: int, year: int, db: Session = Depends(get_db)):
+    budgets = db.query(models.Budget).filter(models.Budget.year == year).filter(models.Budget.month == month).all()
     return {"status": "success", "budgets": budgets}
 
-@budget_router.get('/{totalId}/{budgetId}')
-def get_budget(totalId: int, budgetId: int, db: Session = Depends(get_db)):
-    budget = db.query(models.Budget).filter((models.Budget.total_id == totalId)).filter(
-                                             (models.Budget.budget_id == budgetId)).first()
+@budget_router.get('/{budgetId}')
+def get_budget(budgetId: int, db: Session = Depends(get_db)):
+    budget = db.query(models.Budget).filter(models.Budget.budget_id == budgetId).first()
     return {"status": "success", "budgets": budget}
 
 @budget_router.post('/')

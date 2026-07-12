@@ -2,6 +2,9 @@ import schemas, models
 from sqlalchemy.orm import Session
 from fastapi import Depends, HTTPException, status, APIRouter, Response
 from database import get_db
+import os
+from dotenv import load_dotenv
+import hashlib
 
 account_router = APIRouter()
 
@@ -19,9 +22,27 @@ def get_account(accountId: int, db: Session = Depends(get_db)):
                                 detail = f"No account with this ID: {accountId} found")
     return {"status": "success", "account": account}
 
+@account_router.get('/pass/{username}')
+def get_password(username: str, input_password: str, db: Session = Depends(get_db)):
+    load_dotenv()
+    salt = os.getenv("salt")
+    input_password += salt
+    encrypted_test = hashlib.sha256(input_password.encode())
+    saved_password = db.query(models.Account).filter(models.Account.username == username).first()
+    if(encrypted_test.hexdigest() == saved_password.password):
+        return {"status": "success", "id": saved_password.account_id, "name": saved_password.name}
+    else:
+        return {"status": "fail"}
+
 @account_router.post('/')
 def create_account(payload: schemas.PostAccountSchema, db: Session = Depends(get_db)):
-    new_account = models.Account(**payload.model_dump())
+    if(find_username(payload.username, db)):
+        return {"status": "fail"}
+    load_dotenv()
+    salt = os.getenv("salt")
+    password = payload.password + salt
+    encrypted_password = hashlib.sha256(password.encode())
+    new_account = models.Account(name= payload.name, username= payload.username, password=encrypted_password.hexdigest(), email=payload.email)
     db.add(new_account)
     db.commit()
     db.refresh(new_account)
@@ -52,3 +73,10 @@ def delete_account(accountId: int, db: Session = Depends(get_db)):
     account_query.delete(synchronize_session = False)
     db.commit()
     return Response(status_code = status.HTTP_204_NO_CONTENT)
+
+def find_username(username: str, db: Session = Depends(get_db)):
+    accounts = db.query(models.Account).filter(models.Account.username == username).all()
+    if(accounts):
+        return True
+    else:
+        return False

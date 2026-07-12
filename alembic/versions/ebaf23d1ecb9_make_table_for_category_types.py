@@ -35,7 +35,7 @@ def upgrade() -> None:
 def downgrade() -> None:
     """Downgrade schema."""
     op.drop_constraint(op.f("fk_budgets_categories"), "budgets", type_="foreignkey")
-    op.drop_constrain(op.f("fk_categories_accounts"), "categories", type="foreignkey")
+    op.drop_constraint(op.f("fk_categories_accounts"), "categories", type_="foreignkey")
     op.drop_column("budgets", "category_id")
     op.drop_table("categories")
     op.add_column("budgets", sa.Column('budget_type', sa.String(50), nullable=False))

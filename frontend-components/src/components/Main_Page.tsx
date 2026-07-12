@@ -15,16 +15,7 @@ interface AccountData {
     name: string;
 }
 
-interface TotalData {
-    account_id: number;
-    month: number;
-    year: number;
-    monthly_budget: number;
-    total_id: number;
-}
-
 interface BudgetData {
-    total_id: number;
     category_id: number;
     budget_id: number;
     amount: number;
@@ -40,14 +31,13 @@ interface ExpenseData {
 
 export default function Main_Page() {
     const [account, setAccount] = useState<AccountData>({ "account_id": -1, "name": "" });
-    const [totalInfo, setTotal] = useState<TotalData>({ "account_id": -1, "month": 0, "year": 0, "monthly_budget": 0, "total_id": -1 });
-    const [currentAllocated, setCurrentAllocated] = useState(0);
-    const [allTotals, setAllTotals] = useState<TotalData[]>([]);
     const [categories, setCategories] = useState<BudgetData[]>([]);
     const [expenses, setExpenses] = useState<ExpenseData[]>([]);
     const [expenseCatConnection, setExpenseCatConnection] = useState<{ [key: number]: [string, number] }>({});
     const [categoryNames, setCategoryNames] = useState<{ [key: number]: string }>({});
     const [currentMonthYear, setMonthYear] = useState({ "year": new Date().getFullYear(), "month": new Date().getMonth() + 1 });
+    const [total, setTotal] = useState(0);
+    const [topCat, setTopCat] = useState({ "account_id": 0, "category_id": 0, "name": "" });
     const today = new Date().toISOString().slice(0, 10);
     const months: { [key: number]: string } = {
         1: "January",
@@ -70,12 +60,13 @@ export default function Main_Page() {
         day: "numeric"
     };
 
-    const [makeBudgetOpen, setOpen] = useState(false);
+    const [editAccountOpen, setEditAccountOpen] = useState<boolean>(false);
+    const [currentAccountEdit, setCurrentAccountEdit] = useState<{ "id": number, "name": string }>({ "id": -1, "name": "" });
     const [makeBudgetCategoryOpen, setBudgetCategoryOpen] = useState(false);
     const [newExpenseOpen, setNewExpenseOpen] = useState(false);
     const [editCategoryNames, setEditCategoryNames] = useState(false);
     const [editCategoryDisplayOpen, setEditCategoryDisplay] = useState(false);
-    const [editCategoryInfo, setEditCategoryInfo] = useState<BudgetData>({ "category_id": -1, "budget_id": -1, "amount": -1, "total_id": -1 });
+    const [editCategoryInfo, setEditCategoryInfo] = useState<BudgetData>({ "category_id": -1, "budget_id": -1, "amount": -1 });
     const [editExpenseOpen, setEditExpenseOpen] = useState(false);
     const [currentEditingExpense, setCurrentEditingExpense] = useState<ExpenseData>({ "budget_id": -1, "expense_id": -1, "cost": 0, "description": "", "date": new Date() });
     const [remaining, setRemaining] = useState(0);
@@ -97,18 +88,21 @@ export default function Main_Page() {
         try {
             setMonthYear({ "month": month, "year": year });
             var response = await axios.get(`${API_BASE}/api/mainpage/${location.state.accountId}/?year=${year}&month=${month}&type=${type}`);
-            setTotal(response.data.current_total);
             var total_spent = await axios.get(`${API_BASE}/api/calculate/?accountId=${location.state.accountId}&year=${year}&month=${month}&type=${type}`);
-            var left: number = + ((response.data.current_total.monthly_budget - total_spent.data.total).toFixed(2));
+            if (type == "year") {
+                var top_category = await axios.get(`${API_BASE}/api/top_category/${location.state.accountId}/${year}`);
+            } else {
+                var top_category = await axios.get(`${API_BASE}/api/top_category/${location.state.accountId}/${year}/?month=${month}`);
+            }
+            var left: number = + ((response.data.total - total_spent.data.total).toFixed(2));
             setSpent(total_spent.data.total);
+            setTopCat(top_category.data);
             setRemaining(left);
-            setAllTotals(response.data.all_totals);
             setCategories(response.data.categories);
             setExpenses(response.data.expenses);
             setExpenseCatConnection(response.data.expense_relations);
-            setCurrentAllocated(response.data.currently_allocated);
             setCategoryNames(response.data.category_names);
-            console.log(response.data.category_names);
+            setTotal(response.data.total);
         } catch (error) {
             console.error("Error fetching account totals data, ", error);
         }
@@ -124,7 +118,7 @@ export default function Main_Page() {
     };
 
     const displayThisWeek = () => {
-        fetchAll(currentMonthYear.month, currentMonthYear.year, "week");
+        fetchAll(new Date().getMonth() + 1, new Date().getFullYear(), "week");
         changeMenuButtonColor("week");
     };
 
@@ -142,6 +136,8 @@ export default function Main_Page() {
         var week = document.getElementById("week") as HTMLButtonElement;
         var year = document.getElementById("year") as HTMLButtonElement;
         var month = document.getElementById("month") as HTMLButtonElement;
+        var dropdown = document.getElementById("dropdown-month-select") as HTMLSelectElement;
+        var custom = document.getElementById("custom-month-select") as HTMLInputElement;
         var selected = document.getElementById(type) as HTMLButtonElement;
         week.style.backgroundColor = "oklch(85.39% 0.201 100.73)";
         week.style.color = "oklch(17.078% 0.04 100.73)";
@@ -149,18 +145,23 @@ export default function Main_Page() {
         year.style.color = "oklch(17.078% 0.04 100.73)";
         month.style.backgroundColor = "oklch(85.39% 0.201 100.73)";
         month.style.color = "oklch(17.078% 0.04 100.73)";
+        dropdown.style.backgroundColor = "oklch(85.39% 0.201 100.73)";
+        dropdown.style.color = "oklch(17.078% 0.04 100.73)";
+        custom.style.backgroundColor = "oklch(85.39% 0.201 100.73)";
+        custom.style.color = "oklch(17.078% 0.04 100.73)";
         if (selected) {
             selected.style.color = "oklch(85.39% 0.201 100.73)";
             selected.style.backgroundColor = "oklch(17.078% 0.04 100.73)";
         }
     }
 
-    const handleClickOpen = () => {
-        setOpen(true);
+    const handleEditAccountClose = () => {
+        setEditAccountOpen(false);
     };
 
-    const handleClose = () => {
-        setOpen(false);
+    const handleEditAccountOpen = (id: number, name: string) => {
+        setCurrentAccountEdit({ "id": id, "name": name });
+        setEditAccountOpen(true);
     };
 
     const handleCatNamesOpen = () => {
@@ -188,7 +189,7 @@ export default function Main_Page() {
     };
 
     const handleEditCatOpen = (budget_id: number, category: number, total: number) => {
-        setEditCategoryInfo({ "budget_id": budget_id, "category_id": category, "amount": total, "total_id": totalInfo.total_id });
+        setEditCategoryInfo({ "budget_id": budget_id, "category_id": category, "amount": total });
         setEditCategoryDisplay(true);
     };
 
@@ -204,18 +205,6 @@ export default function Main_Page() {
     const handleCloseEdit = () => {
         setEditExpenseOpen(false);
     };
-
-    function checkCategoryAmountLimit(test_amount: number, editing: boolean = false) {
-        var remaining = totalInfo.monthly_budget - currentAllocated;
-        if (editing) {
-            remaining += editCategoryInfo.total_id;
-        }
-        if (test_amount > remaining) {
-            return false;
-        } else {
-            return true;
-        }
-    }
 
     function checkNameDoesNotExists(name: string) {
 
@@ -242,6 +231,19 @@ export default function Main_Page() {
         }
     };
 
+    function handleAccountDelete(id: number, name: string) {
+        if (window.confirm(`Are you sure you would like to delete "${name}" forever?`) === true) {
+            try {
+                axios.delete(`${API_BASE}/api/accounts/${id}`).then(_ => {
+                    navigate("/");
+                });
+            } catch (error) {
+                console.error("Unable to delete account: ", error);
+            }
+        }
+
+    };
+
     function handleBackClick() {
         navigate("/")
     };
@@ -249,11 +251,10 @@ export default function Main_Page() {
     function goToBudgetPage(budgetId: number, category: number) {
         navigate(`/budgets/${budgetId}`, {
             state: {
-                account_id: totalInfo.account_id,
+                account_id: location.state.accountId,
                 budget_id: budgetId,
                 category_id: category,
-                totalId: totalInfo.total_id,
-                month: months[currentMonthYear.month],
+                month: currentMonthYear.month,
                 year: currentMonthYear.year
             }
         });
@@ -263,36 +264,12 @@ export default function Main_Page() {
         navigate(`/visualizations/${location.state.accountId}`, {
             state: {
                 accountId: location.state.accountId,
-                month: totalInfo.month,
-                year: totalInfo.year,
-                monthlyTotalId: totalInfo.total_id
+                month: currentMonthYear.month,
+                year: currentMonthYear.year
             }
         });
     };
 
-    function makeNewMonthBudget(event: React.SubmitEvent) {
-        event.preventDefault();
-        handleClose();
-        var form = event.target;
-        var formData = new FormData(form);
-        var formJson = Object.fromEntries(formData.entries());
-        try {
-            axios.post(`${API_BASE}/api/monthlyTotals`, {
-                "account_id": location.state.accountId,
-                "month": parseInt(String(formJson.month).slice(5)),
-                "year": parseInt(String(formJson.month).slice(0, 4)),
-                "total_expenses": 0,
-                "monthly_budget": formJson.amount
-            }).then(_ => {
-                fetchAll(totalInfo.month, totalInfo.year);
-            });
-
-        } catch (error) {
-            console.log("Error making new monthly budget, ", error);
-        }
-
-        handleClose();
-    };
 
     function makeNewBudgetCategory(event: React.SubmitEvent) {
         event.preventDefault();
@@ -302,44 +279,43 @@ export default function Main_Page() {
         var formJson = Object.fromEntries(formData.entries());
         var true_category_name = formJson.category_names;
 
-        if (checkCategoryAmountLimit(Number(formJson.amount_allocated))) {
-            // NEED TO CHECK IF CATEGORY ALREADY EXISTS, IF SO GO TO BUDGET ENDPOINT
-            if (!true_category_name) {
-                true_category_name = formJson.category_name;
-                if (checkNameDoesNotExists(true_category_name.toString())) {
-                    try {
-                        axios.post(`${API_BASE}/api/mainpage/${totalInfo.account_id}/${true_category_name}`, {
-                            "total_id": totalInfo.total_id,
-                            "category_id": 0,
-                            "amount": formJson.amount_allocated,
-                            "spent": 0
-                        }).then(_ => {
-                            fetchAll(totalInfo.month, totalInfo.year);
-                        });
-                    } catch (error) {
-                        console.log("error making new budget category", error);
-                    }
-                }
-
-            } else {
-                if (checkNameDoesNotExists(true_category_name.toString())) {
-                    try {
-                        axios.post(`${API_BASE}/api/budgets`, {
-                            "total_id": totalInfo.total_id,
-                            "category_id": true_category_name,
-                            "amount": formJson.amount_allocated,
-                            "spent": 0
-                        }).then(_ => {
-                            fetchAll(totalInfo.month, totalInfo.year);
-                        })
-                    } catch (error) {
-                        console.log("error making new budget category", error);
-                    }
+        // NEED TO CHECK IF CATEGORY ALREADY EXISTS, IF SO GO TO BUDGET ENDPOINT
+        if (!true_category_name) {
+            true_category_name = formJson.category_name;
+            if (checkNameDoesNotExists(true_category_name.toString())) {
+                try {
+                    axios.post(`${API_BASE}/api/mainpage/${location.state.accountId}/${true_category_name}`, {
+                        "category_id": 0,
+                        "amount": formJson.amount_allocated,
+                        "spent": 0,
+                        "month": currentMonthYear.month,
+                        "year": currentMonthYear.year,
+                        "account_id": location.state.accountId
+                    }).then(_ => {
+                        fetchAll(currentMonthYear.month, currentMonthYear.year);
+                    });
+                } catch (error) {
+                    console.log("error making new budget category", error);
                 }
             }
 
         } else {
-            alert("You cannot allocate more than what remains");
+            if (checkNameDoesNotExists(true_category_name.toString())) {
+                try {
+                    axios.post(`${API_BASE}/api/budgets`, {
+                        "category_id": true_category_name,
+                        "amount": formJson.amount_allocated,
+                        "spent": 0,
+                        "month": currentMonthYear.month,
+                        "year": currentMonthYear.year,
+                        "account_id": location.state.accountId
+                    }).then(_ => {
+                        fetchAll(currentMonthYear.month, currentMonthYear.year);
+                    })
+                } catch (error) {
+                    console.log("error making new budget category", error);
+                }
+            }
         }
 
     };
@@ -356,9 +332,10 @@ export default function Main_Page() {
                 "budget_id": formJson.budgetId,
                 "description": formJson.expense_description,
                 "cost": formJson.cost,
-                "date": formJson.date
+                "date": formJson.date,
+                "account_id": location.state.accountId
             }).then(_ => {
-                fetchAll(totalInfo.month, totalInfo.year);
+                fetchAll(currentMonthYear.month, currentMonthYear.year);
             });
         } catch (error) {
             console.log("error making new expense: ", error);
@@ -375,7 +352,7 @@ export default function Main_Page() {
             if (formJson[`${item}Name`] != categoryNames[parseInt(item)]) {
                 try {
                     axios.patch(`${API_BASE}/api/categories/${item}`, {
-                        'account_id': totalInfo.account_id,
+                        'account_id': location.state.accountId,
                         'category_id': item,
                         'category_name': formJson[`${item}Name`]
                     })
@@ -384,6 +361,47 @@ export default function Main_Page() {
                 }
             }
         }
+    };
+
+    function handleEdit(event: React.SubmitEvent) {
+        event.preventDefault();
+        handleEditAccountClose();
+        var form = event.target;
+        var formData = new FormData(form);
+        var formJson = Object.fromEntries(formData.entries());
+        if (formJson.name === currentAccountEdit["name"]) {
+            return;
+        }
+        try {
+            axios.patch(`${API_BASE}/api/accounts/${currentAccountEdit["id"]}`, {
+                "account_id": currentAccountEdit["id"],
+                "name": formJson.name,
+            }).then(_ => {
+                alert(`Edited account with new name: ${formJson.name}`);
+                window.location.reload();
+            })
+        } catch (error) {
+            console.error("Error editing Account: ", error)
+        }
+    }
+
+    function editAccountDisplay() {
+        return (
+            <Dialog open={editAccountOpen} onClose={handleEditAccountClose}>
+                <form onSubmit={handleEdit} id='edit-account-form' className="bg-base-200">
+                    <fieldset className="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4">
+                        <legend className="fieldset-legend">Edit Account</legend>
+                        <label className="label">Account Name</label>
+                        <input className="input" id="name" name="name" required defaultValue={currentAccountEdit.name} />
+
+                        <DialogActions>
+                            <button className="btn btn-neutral mt-4" onClick={handleEditAccountClose}>Cancel</button>
+                            <button className="btn btn-neutral mt-4" type="submit" form="edit-account-form">Edit</button>
+                        </DialogActions>
+                    </fieldset>
+                </form>
+            </Dialog>
+        );
     };
 
     function editCategory(event: React.SubmitEvent) {
@@ -396,19 +414,16 @@ export default function Main_Page() {
         if ((Number(formJson.amount) === editCategoryInfo["amount"]) && (formJson.category_name === categoryNames[editCategoryInfo["category_id"]])) {
             return;
         }
-        if (checkCategoryAmountLimit(Number(formJson.amount))) {
-            try {
-                axios.patch(`${API_BASE}/api/budgets/${editCategoryInfo["budget_id"]}`, {
-                    "budget_id": editCategoryInfo["budget_id"],
-                    "category_id": formJson.category_name, //NEED TO GRAB ID FROM NAME
-                    "amount": formJson.amount
-                });
-                handleSelectNewBudgetInfo(totalInfo.month, totalInfo.year);
-            } catch (error) {
-                console.log("error editing budget type: ", error);
-            }
-        } else {
-            alert("You cannot allocate more than what remains");
+
+        try {
+            axios.patch(`${API_BASE}/api/budgets/${editCategoryInfo["budget_id"]}`, {
+                "budget_id": editCategoryInfo["budget_id"],
+                "category_id": formJson.category_name,
+                "amount": formJson.amount
+            });
+            handleSelectNewBudgetInfo(currentMonthYear.month, currentMonthYear.year, "");
+        } catch (error) {
+            console.log("error editing budget type: ", error);
         }
 
     };
@@ -435,8 +450,8 @@ export default function Main_Page() {
         }
     };
 
-    function handleSelectNewBudgetInfo(month: number, year: number) {
-        changeMenuButtonColor("");
+    function handleSelectNewBudgetInfo(month: number, year: number, selected: string) {
+        changeMenuButtonColor(selected);
         fetchAll(month, year);
     };
 
@@ -492,9 +507,14 @@ export default function Main_Page() {
             <Dialog open={editCategoryDisplayOpen} onClose={handleEditCatClose} >
                 <form onSubmit={editCategory} id="edit-existing-cat" className='bg-base-200'>
                     <fieldset className="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4">
-                        <legend className="fieldset-legend">Edit Category</legend>
+                        <legend className="fieldset-legend">Edit {categoryNames[editCategoryInfo["category_id"]]}</legend>
                         <label className="label">Category Name</label>
-                        <input className="input" id="category_name" name="category_name" required defaultValue={categoryNames[editCategoryInfo.category_id]} />
+                        <select className="select" name="category_name" defaultValue={categoryNames[editCategoryInfo["category_id"]]}>
+
+                            {Object.entries(categoryNames).map(([catNameId, catName]) => (
+                                <option key={catNameId} value={catNameId}>{catName}</option>
+                            ))}
+                        </select>
 
                         <label className="label">Budget Limit</label>
                         <input className="input" id="amount" name="amount" required defaultValue={editCategoryInfo.amount} />
@@ -511,7 +531,7 @@ export default function Main_Page() {
     function editExpenseDisplay() {
         var currentCat = (categories.find(category => category.budget_id == currentEditingExpense.budget_id));
         var currentDay = new Date();
-        var monthsDifference = ((totalInfo.year - currentDay.getFullYear()) * 12) + (totalInfo.month - (currentDay.getMonth() + 1));
+        var monthsDifference = ((currentMonthYear.year - currentDay.getFullYear()) * 12) + (currentMonthYear.month - (currentDay.getMonth() + 1));
         return (
             <Dialog open={editExpenseOpen} onClose={handleCloseEdit}>
                 <form onSubmit={editSelectedExpense} id="edit-expense-form" className="bg-base-200">
@@ -558,40 +578,16 @@ export default function Main_Page() {
         );
     };
 
-    function newBudgetDisplay() {
-        return (
-            <Dialog open={makeBudgetOpen} onClose={handleClose}>
-                <form onSubmit={makeNewMonthBudget} id="make-new-budget-form" className="bg-base-200">
-                    <fieldset className="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4">
-                        <legend className="fieldset-legend">New Month's Budget</legend>
-                        <label className="label">Month/Year</label>
-                        <input className="input" id="month" name="month" required type="month" />
-
-                        <label className="label">Budget Limit</label>
-                        <label className="input">
-                            $
-                            <input id="amount" name="amount" required type="number" />
-                        </label>
-
-                        <DialogActions>
-                            <button className="btn btn-neutral mt-4" onClick={handleClose}>Cancel</button>
-                            <button className="btn btn-neutral mt-4" type="submit" form="make-new-budget-form">Create</button>
-                        </DialogActions>
-                    </fieldset>
-                </form>
-            </Dialog>
-        );
-    };
 
     function newCategoryDisplay() {
         return (
             <Dialog open={makeBudgetCategoryOpen} onClose={handleBudgetCategoryClose}>
                 <form onSubmit={makeNewBudgetCategory} id="make-new-category-form" className="bg-base-200">
                     <fieldset className="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4">
-                        <legend className="fieldset-legend">New Budget Category in {months[totalInfo.month]}</legend>
+                        <legend className="fieldset-legend">New Budget Category in {months[currentMonthYear.month]}</legend>
                         <label className="label">Category Title</label>
-                        <select className="select" name="category_names">
-                            <option key="default-select" value="" selected>Select Category Name</option>
+                        <select className="select" name="category_names" defaultValue="Select Category Name">
+                            <option key="default-select" value="">Select Category Name</option>
                             {Object.entries(categoryNames).map(([catNameId, catName]) => (
                                 <option key={catNameId} value={catNameId}>{catName}</option>
                             ))}
@@ -623,7 +619,8 @@ export default function Main_Page() {
 
     function newExpenseDisplay() {
         var currentDay = new Date();
-        var monthsDifference = ((totalInfo.year - currentDay.getFullYear()) * 12) + (totalInfo.month - (currentDay.getMonth() + 1));
+        var monthsDifference = ((currentMonthYear.year - currentDay.getFullYear()) * 12) + (currentMonthYear.month - (currentDay.getMonth() + 1));
+
         return (
             <Dialog open={newExpenseOpen} onClose={handleNewExpenseClose}>
                 <form onSubmit={makeNewExpense} id="new-expense-form" className="bg-base-200">
@@ -639,9 +636,7 @@ export default function Main_Page() {
                         <label className="label">Date</label>
                         <input className="input bg-base-100" name="date" id="expense_date_input" required defaultValue={today}></input>
                         <div id="cally-popover1" className="dropdown bg-base-100 rounded-box shadow-lg">
-                            <calendar-date className="cally" onchange={(date) => changeDateInput(date)} value="" defaultValue={`${totalInfo.year}-${totalInfo.month}-01`}
-                                min={new Date(totalInfo.year, totalInfo.month - 1, 1).toISOString().slice(0, 10)}
-                                max={new Date(totalInfo.year, totalInfo.month, 0).toISOString().slice(0, 10)}>
+                            <calendar-date className="cally" onchange={(date) => changeDateInput(date)} value="" defaultValue={`${currentMonthYear.year}-${currentMonthYear.month}-01`}>
                                 <svg aria-label="Previous" className="fill-current size-4" slot="previous" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M15.75 19.5 8.25 12l7.5-7.5"></path></svg>
                                 <svg aria-label="Next" className="fill-current size-4" slot="next" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m8.25 4.5 7.5 7.5-7.5 7.5"></path></svg>
                                 <calendar-month offset={monthsDifference}></calendar-month>
@@ -666,6 +661,22 @@ export default function Main_Page() {
         );
     };
 
+    function selectOutOfYearBudget(e: React.ChangeEvent<HTMLInputElement>) {
+        var month = e.target.value.slice(5);
+        var year = e.target.value.slice(0, 4);
+        handleSelectNewBudgetInfo(parseInt(month), parseInt(year), "custom-month-select");
+        var dropdown = document.getElementById("dropdown-month-select") as HTMLSelectElement;
+        var defaultOption = document.getElementById("dropdown-default") as HTMLOptionElement;
+        dropdown.value = defaultOption.value;
+
+
+    }
+
+    function revertCustomSelect(month: number, year: number) {
+        handleSelectNewBudgetInfo(month, year, "dropdown-month-select");
+        var yearSelect = document.getElementById("custom-month-select") as HTMLInputElement;
+        yearSelect.value = "";
+    }
 
     return (
         <div className="flex">
@@ -678,12 +689,11 @@ export default function Main_Page() {
                         <ul className="menu bg-base-200 rounded-box my-5">
                             <li><h1 className="menu-title text-base-content">Navigation</h1></li>
                             <li>
-                                <button className="font-bold" onClick={handleBackClick}>Back to Accounts</button>
+                                <button className="font-bold" onClick={handleBackClick}>Log Out</button>
                             </li>
                             <li>
                                 <h2 className="menu-title">Add New Info</h2>
                                 <ul>
-                                    <li><button className="font-bold" onClick={handleClickOpen}>New Month's Budget</button></li>
                                     <li><button className="font-bold" onClick={handleBudgetCategoryOpen}>Make Budget Category</button></li>
                                     <li><button className="font-bold" onClick={handleNewExpenseOpen}>Add Expense</button></li>
                                 </ul>
@@ -695,12 +705,19 @@ export default function Main_Page() {
                                     <li><button className="font-bold" onClick={handleCatNamesOpen}>Edit Existing Categories</button></li>
                                 </ul>
                             </li>
+                            <li>
+                                <h2 className="menu-title">Account</h2>
+                                <ul>
+                                    <li><button className="font-bold" onClick={() => handleEditAccountOpen(location.state.accountId, location.state.name)}>Edit Account</button></li>
+                                    <li><button className="font-bold" onClick={() => handleAccountDelete(location.state.accountId, location.state.name)}>Delete Account</button></li>
+                                </ul>
+                            </li>
                         </ul>
                     </div>
-                    {newBudgetDisplay()}
                     {newCategoryDisplay()}
                     {newExpenseDisplay()}
                     {editCategoryNamesDisplay()}
+                    {editAccountDisplay()}
                 </div>
             </div>
             <div className="flex flex-col min-w-0 min-h-0">
@@ -711,24 +728,25 @@ export default function Main_Page() {
                         <li ><button id="month" onClick={displayThisMonth}>this month</button></li>
                         <li ><button id="year" onClick={displayThisYear}>this year</button></li>
                         <li>
-                            <select className="select select-accent-content bg-accent text-accent-content" defaultValue="Select Period">
-                                <option key="default" disabled>Select Period</option>
-                                {allTotals.map(total => (
-                                    <option key={total.total_id} onClick={() => handleSelectNewBudgetInfo(total.month, total.year)}>
-                                        {months[total.month]}/{total.year}
+                            <select id="dropdown-month-select" className="select select-accent-content bg-accent text-accent-content" defaultValue="Select From This Year">
+                                <option key="default" id="dropdown-default" disabled>Select From This Year</option>
+                                {Object.entries(months).map(month => (
+                                    <option key={month[0]} onClick={() => revertCustomSelect(parseInt(month[0]), currentMonthYear.year)}>
+                                        {month[1]}/{currentMonthYear.year}
                                     </option>
                                 ))}
                             </select>
                         </li>
+                        <li><input id="custom-month-select" type="month" onChange={(e: React.ChangeEvent<HTMLInputElement>) => { selectOutOfYearBudget(e) }} /></li>
                     </ul>
                 </div>
                 <div className="flex flex-row h-46 min-w-0 min-h-0">
                     <div className="card card-border bg-base-200 my-3 mx-5 p-2 w-lg flex-1 border-secondary border-4">
                         <div className="card-body">
                             <h2 className="card-title text-base-content">Remaining this Month</h2>
-                            <p className="text-3xl text-base-content">${remaining}/${totalInfo.monthly_budget}</p>
+                            <p className="text-3xl text-base-content">${remaining}/${total}</p>
                             <div className="card-actions justify-end">
-                                <h2 className="text-base-content">{(totalInfo.monthly_budget - remaining) >= 0 ? (
+                                <h2 className="text-base-content">{(remaining) >= 0 ? (
                                     "within budget"
                                 ) : (
                                     "over budget :("
@@ -740,8 +758,8 @@ export default function Main_Page() {
 
                     <div className="card card-border bg-base-200 border-secondary border-4 m-2 text-center align-middle my-3 mx-5 p-2 w-lg flex-1">
                         <div className="card-body">
-                            <h3 className="card-title text-base-content">Amount Allocated this Month</h3>
-                            <h3 className="text-3xl text-base-content">${currentAllocated}/${totalInfo.monthly_budget}</h3>
+                            <h3 className="card-title text-base-content">Top Spent Category of Month</h3>
+                            <h3 className={`text-3xl text-base-content`}>{topCat.name}</h3>
                         </div>
                     </div>
 
@@ -826,9 +844,13 @@ export default function Main_Page() {
                                                 <td>{expense.description}</td>
                                                 <td className="text-center">{new Date(expense.date).toLocaleDateString(undefined, dateOptions)}</td>
                                                 <td className="justify-center text-center">
-                                                    <p className={` badge pill-${expenseCatConnection[expense.budget_id][1] % 20}`}>
-                                                        {expenseCatConnection[expense.budget_id][0]}
-                                                    </p>
+                                                    {expenseCatConnection[expense.budget_id] == null ? (
+                                                        <p></p>
+                                                    ) : (
+                                                        <p className={` badge pill-${expenseCatConnection[expense.budget_id][1] % 20}`}>
+                                                            {expenseCatConnection[expense.budget_id][0]}
+                                                        </p>
+                                                    )}
                                                 </td>
                                                 <td className="text-right">${expense.cost.toFixed(2)}</td>
                                                 <td className="text-right">

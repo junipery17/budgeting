@@ -13,6 +13,8 @@ export default function Visualizations() {
     const [total_budget_expense_dict, setTotalDict] = useState<{ [key: string]: number }>({});
     const [budgets_to_spent, setBudgetsToSpent] = useState<{ [key: string]: number }>({});
     const [monthlySpent, setMonthlySpent] = useState<{ "current_monthly_total": number, "spent": number }>({ "current_monthly_total": 0, "spent": 0 });
+    const [allTime, setAllTime] = useState<{ "alltime_budget": number, "alltime_spent": number }>({ "alltime_budget": 0, "alltime_spent": 0 });
+    const [topCat, setTopCat] = useState({ "account_id": 0, "category_id": 0, "name": "" });
     const location = useLocation();
     const navigate = useNavigate();
 
@@ -30,8 +32,12 @@ export default function Visualizations() {
     };
 
     const fetchMonthlyTotalSpent = async () => {
-        let response = await axios.get(`${API_BASE}/api/charts/${location.state.accountId}/${location.state.monthlyTotalId}`);
-        setMonthlySpent({ "current_monthly_total": response.data.monthly_total.monthly_budget, "spent": response.data.expenses_sum })
+        let response = await axios.get(`${API_BASE}/api/charts/${location.state.accountId}/${location.state.month}/${location.state.year}`);
+        console.log(response.data);
+        setMonthlySpent({ "current_monthly_total": response.data.monthly_total, "spent": response.data.expenses_sum });
+        setAllTime({ "alltime_budget": response.data.all_budgets_total, "alltime_spent": response.data.all_expense_sum });
+        response = await axios.get(`${API_BASE}/api/top_category/${location.state.accountId}/${location.state.year}/?month=${location.state.month}`);
+        setTopCat(response.data);
     };
 
     function handleBackClick() {
@@ -208,21 +214,20 @@ export default function Visualizations() {
                     <div className="bg-base-300 rounded-box h-190 place-items-center">
                         <h1 className="card-title pt-5">Month Stats</h1>
                         <div>
-                            <div className="card">
+                            <div className="card items-center">
                                 Top Spent Category
-                                <p className="card-body font-bold text-xl">{ }</p>
+                                <p className={`card-body font-bold text-xl my-5 badge pill-${topCat.category_id % 20}`}>{topCat.name}</p>
                             </div>
                             <div className="card">
                                 Percent of budget used so far
-                                <p className="card-body font-bold text-xl">{((monthlySpent["spent"] / monthlySpent["current_monthly_total"]) * 100).toFixed(2)}%</p>
+                                <p className="card-body font-bold text-xl">{((monthlySpent.spent / monthlySpent.current_monthly_total) * 100).toFixed(2)}%</p>
                             </div>
                         </div>
 
                         <h1 className="card-title">Lifetime Stats</h1>
-                        <div><span>Top Spent Category</span></div>
-                        <div>
-                            Total Amount Saved
-                            <p className="card-body font-bold text-xl">{ }</p>
+                        <div className="card">
+                            Percent of Lifetime Budget Used
+                            <p className="card-body font-bold text-xl">{((allTime.alltime_spent / allTime.alltime_budget) * 100).toFixed(2)}%</p>
                         </div>
                     </div>
 
