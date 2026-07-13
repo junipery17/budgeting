@@ -1,0 +1,102 @@
+[data-theme="lemonade"],
+[data-theme="retro"] {
+    .pill-0 {
+        background-color: #64e7a6;
+        color: #203b30;
+    }
+
+    .pill-1 {
+        background-color: #ace042;
+        color: #3c5212;
+    }
+
+    .pill-2 {
+        background-color: #42e0c6;
+        color: #134649;
+    }
+
+    .pill-3 {
+        background-color: #264036;
+        color: #f3fff4;
+    }
+
+    .pill-4 {
+        background-color: #eab308;
+        color: #3d341a;
+    }
+
+    .pill-5 {
+        background-color: #1e381b;
+        color: #b9e9b4;
+    }
+
+    .pill-6 {
+        background-color: #5cacc0;
+        color: #1f2f35;
+    }
+
+    .pill-7 {
+        background-color: #d19965;
+        color: #352b1f;
+    }
+
+    .pill-8 {
+        background-color: #ca5d32;
+        color: #2c221e;
+    }
+
+    .pill-9 {
+        background-color: #3d3225;
+        color: #cfb18f;
+    }
+
+    .pill-10 {
+        background-color: #a16207;
+        color: #fff0da;
+    }
+
+    .pill-11 {
+        background-color: #a7f3d0;
+        color: #141f1a;
+    }
+
+    .pill-12 {
+        background-color: #f87171;
+        color: #1f1616;
+    }
+
+    .pill-13 {
+        background-color: #DA9100;
+        color: #14130e;
+    }
+
+    .pill-14 {
+        background-color: #1B4D3E;
+        color: #ccffea;
+    }
+
+    .pill-15 {
+        background-color: #1AC0C6;
+        color: #0e1414;
+    }
+
+    .pill-16 {
+        background-color: #F0F8FF;
+        color: #33393f;
+    }
+
+    .pill-17 {
+        background-color: #003153;
+        color: #b6cfe0;
+    }
+
+    .pill-18 {
+        background-color: #4F42B5;
+        color: #e4e3f1;
+    }
+
+    .pill-19 {
+        background-color: #9A4EAE;
+        color: #fbeeff;
+    }
+}
